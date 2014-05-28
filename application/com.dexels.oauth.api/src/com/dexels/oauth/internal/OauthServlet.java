@@ -33,13 +33,13 @@ public class OauthServlet extends HttpServlet {
 	private UserAuthenticator userAuthenticator = null;
 	private TokenStore tokenStore = null;
 	private ClientStore clientStore = null;
-	private ScopeValidator scopeDescriptionProvider;
+	private ScopeValidator scopeValidator;
 	
 	public void activate() {
-		this.userAuthenticator = new EqualUserAuthenticator();
-		this.tokenStore = new InMemoryTokenStore();
-		this.scopeDescriptionProvider = new SimpleScopeValidator();
-		this.clientStore = new InMemoryClientStore();
+//		this.userAuthenticator = new EqualUserAuthenticator();
+//		this.tokenStore = new InMemoryTokenStore();
+//		this.scopeValidator = new SimpleScopeValidator();
+//		this.clientStore = new InMemoryClientStore();
 		
 		this.clientStore.registerClient("123", new ClientRegistration() {
 			
@@ -60,6 +60,40 @@ public class OauthServlet extends HttpServlet {
 		});
 		
 	}
+	
+	
+	public void setTokenStore(TokenStore tokenStore) {
+		this.tokenStore = tokenStore;
+	}
+
+	public void clearTokenStore(TokenStore tokenStore) {
+		this.tokenStore = null;
+	}
+
+	public void setClientStore(ClientStore clientStore) {
+		this.clientStore = clientStore;
+	}
+
+	public void clearClientStore(ClientStore clientStore) {
+		this.clientStore = null;
+	}
+
+	public void setUserAuthenticator(UserAuthenticator userAuthenticator) {
+		this.userAuthenticator = userAuthenticator;
+	}
+	
+	public void clearUserAuthenticator(UserAuthenticator userAuthenticator) {
+		this.userAuthenticator = null;
+	}
+	
+	public void setScopeValidator(ScopeValidator scopeValidator) {
+		this.scopeValidator = scopeValidator;
+	}
+	
+	public void clearScopeValidator(ScopeValidator scopeValidator) {
+		this.scopeValidator = null;
+	}
+
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -112,7 +146,7 @@ public class OauthServlet extends HttpServlet {
 		req.getSession().setAttribute("redirect_uri", redirect_uri);
 		
 		for (String s : scope) {
-			if(!this.scopeDescriptionProvider.isValidScope(s)) {
+			if(!this.scopeValidator.isValidScope(s)) {
 				throw new ServletException("Illegal scope: "+s);
 			}
 		}
@@ -250,7 +284,7 @@ public class OauthServlet extends HttpServlet {
 		for (String s : scopes) {
 			ObjectNode element = mapper.createObjectNode(); 
 			element.put("name",s);
-			element.put("description",this. scopeDescriptionProvider.getScopeDescription(s));
+			element.put("description",this. scopeValidator.getScopeDescription(s));
 			requestedScopes.add(element);
 		}
 		rootNode.put("requestedScopes", requestedScopes);
